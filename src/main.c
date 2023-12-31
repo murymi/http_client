@@ -20,14 +20,16 @@ int main() {
 
     http_client *h = http_client_create();
 
-    http_client_set_url("https://localhost:3000/hello/world", h);
+    http_client_set_url("https://127.0.0.1:3000/", h);
 
-    http_client_set_header("content-length", "500", h);
+    //http_client_set_header("content-length", "500", h);
     http_client_set_header("connection", "close", h);
 
-    http_client_set_method(POST, h);
+    http_client_set_method(GET, h);
 
-    puts(http_client_write_header(h));
+    http_client_connect(h);
+
+    //puts(http_client_write_header(h));
     
     return 0;
 }

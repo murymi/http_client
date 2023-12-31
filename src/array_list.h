@@ -8,7 +8,7 @@
 typedef struct string_array_list strAL;
 struct string_array_list
 {
-    int size;
+    size_t size;
     size_t capacity;
     char **list;
 };
@@ -19,7 +19,7 @@ void string_array_list_add_one(strAL *sal);
 
 void string_array_list_append(strAL *al, char *str);
 
-void *string_array_list_print(strAL *a);
+void string_array_list_print(strAL *a);
 
 char *string_array_list_get(strAL *a, size_t pos);
 

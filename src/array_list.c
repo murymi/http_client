@@ -1,15 +1,9 @@
+#include "array_list.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 
-typedef struct string_array_list strAL;
-struct string_array_list
-{
-    int size;
-    size_t capacity;
-    char **list;
-};
 
 strAL *string_array_list_create()
 {
@@ -59,9 +53,9 @@ void string_array_list_append(strAL *al, char *str)
 
 }
 
-void *string_array_list_print(strAL *a)
+void string_array_list_print(strAL *a)
 {
-    for (int i = 0; i < a->size; i++)
+    for (size_t i = 0; i < a->size; i++)
     {
         puts(a->list[i]);
     }
@@ -161,7 +155,7 @@ void string_array_list_add(strAL *sal, char *value, size_t pos)
 
 
 void string_arraylist_destroy(strAL **sal) {
-    for(int i = 0; i < (*sal)->size; i++){
+    for(size_t i = 0; i < (*sal)->size; i++){
         free((*sal)->list[i]);
     }
 
@@ -205,7 +199,7 @@ strAL *string_array_list_create_capacity(size_t capacity){
     __assert("Successfull memory allocation\n", __FILE__, __LINE__);
 }
 
-
+/*
 int mainh()
 {
     strAL *x = string_array_list_create_capacity(27);
@@ -265,3 +259,4 @@ int mainh()
 
     // puts(arr[1]);
 }
+*/

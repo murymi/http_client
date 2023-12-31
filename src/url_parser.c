@@ -74,7 +74,7 @@ struct map_t *parse_url_query(char *query)
 
     map_t *params = map_create();
 
-    for(int i = 0; i < tmp->size; i++)
+    for(size_t i = 0; i < tmp->size; i++)
     {
         char *toProcess = string_array_list_get(tmp, i);
         strAL *this_pair = split_lim('=', toProcess, strlen(toProcess), 2);
@@ -210,11 +210,16 @@ char *get_port_from_url(char *url)
 {
     strAL *colon_splits = split_lim(':', url, strlen(url), 3);
 
+    string_array_list_print(colon_splits);
+
     if (colon_splits->size != 3)
     {
+        printf("==szize = %ld ===\n", colon_splits->size);
         string_arraylist_destroy(&colon_splits);
         return NULL;
     }
+
+    puts("=================");
 
     char *port = NULL;
 
@@ -222,8 +227,10 @@ char *get_port_from_url(char *url)
 
     strAL *slash_splits = split('/', last_part, strlen(last_part));
 
-    if (slash_splits->size > 0)
+    if (slash_splits->size > 0){
         port = string_array_list_get_copy(slash_splits, 0);
+        printf("= %s =\n", port);
+    }
 
     string_arraylist_destroy(&slash_splits);
     string_arraylist_destroy(&colon_splits);

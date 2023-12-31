@@ -167,7 +167,7 @@ bool http_client_set_url(char *url, http_client *client)
   client->url = c_url->path;
   http_client_set_address(c_url->domain,client);
   http_client_set_header("Host",c_url->domain,client);
-  http_client_set_port("443",client);
+  http_client_set_port(c_url->port, client);
 
   return true;
 }
@@ -598,7 +598,7 @@ map_t * parse_http_response(char *req)
   string_arraylist_destroy(&vc);
 
 
-    for(int i = 1; i < vl->size; i++)
+    for(size_t i = 1; i < vl->size; i++)
     {
         char *thisLine = string_array_list_get(vl, i);
         vc = split_lim(':', thisLine, strlen(thisLine), 2);
