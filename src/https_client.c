@@ -167,7 +167,14 @@ bool http_client_set_url(char *url, http_client *client)
   client->url = c_url->path;
   http_client_set_address(c_url->domain,client);
   http_client_set_header("Host",c_url->domain,client);
-  http_client_set_port(c_url->port, client);
+
+  if(c_url->port){
+    http_client_set_port(c_url->port, client);
+  } else {
+    http_client_set_port("443", client);
+  }
+
+  url_free(c_url);
 
   return true;
 }
