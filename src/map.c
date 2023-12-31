@@ -181,7 +181,7 @@ void map_delete(map_t *m, char *key) {
 inline void in_order(bstree *b){
     if(b){
         in_order(b->left);
-        printf("%s> %s\n", b->key, b->value);
+        printf("%s: %s\n", b->key, b->value);
         in_order(b->right);
     }
 }

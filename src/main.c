@@ -28,7 +28,7 @@ int main() {
     http_client_set_method(GET, h);
 
     if(http_client_connect(h)){
-        puts("connection success");
+        map_print(h->response_headers);
     } else {
         puts("connection failed");
     }

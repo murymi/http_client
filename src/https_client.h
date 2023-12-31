@@ -30,7 +30,8 @@ struct http_client
     char * method;
     char * address;
     char * port;
-    char * response;
+    size_t content_length;
+    bool chunked_body;
 };
 
 enum files

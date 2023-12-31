@@ -466,10 +466,20 @@ bool http_client_receive_response(SSL *sock, http_client *client)
         break;
       }
 
-      map_print(http_res);
+      char *clen = map_get(http_res, "content-length");
+      char *trenc = map_get(http_res, "transfer-encoding");
 
+      if(clen){
+        client->content_length = strtol(clen, NULL, 10);
+      } else if(trenc){
+        client->chunked_body = true;
+      } else {
+        out = false;
+      }
 
       client->response_headers = http_res;
+
+      break;
     }
 
     header_size++;
@@ -564,7 +574,6 @@ void http_client_destroy(http_client *client)
 
   if(client->address) free(client->address);
   if(client->body) free(client->body);
-  if(client->response) free(client->response);
   if(client->url) free(client->url);
   if(client->headers) map_destroy(&(client->headers));
   if(client->response_headers) map_destroy(&(client->response_headers));
