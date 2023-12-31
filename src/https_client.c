@@ -189,6 +189,18 @@ bool http_client_set_method(methods m, http_client *client)
   case POST:
     return http_client_set_method_str("POST", client);
     break;
+  case PATCH:
+    return http_client_set_method_str("PATCH", client);
+    break;
+  case PUT:
+    return http_client_set_method_str("PUT", client);
+    break;
+  case DELETE:
+    return http_client_set_method_str("DELETE", client);
+    break;
+  case OPTIONS:
+    return http_client_set_method_str("OPTIONS", client);
+    break;
   default:
     return http_client_set_method_str("GET", client);
   }
@@ -555,7 +567,7 @@ void http_client_destroy(http_client *client)
   if(client->port) free(client->port);
   if(client->method) free(client->method);
   if(client->http_version) free(client->http_version);
-  
+
   if(client->context){
       SSL_free(client->handle);
       SSL_CTX_free(client->context);

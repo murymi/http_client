@@ -214,12 +214,9 @@ char *get_port_from_url(char *url)
 
     if (colon_splits->size != 3)
     {
-        printf("==szize = %ld ===\n", colon_splits->size);
         string_arraylist_destroy(&colon_splits);
         return NULL;
     }
-
-    puts("=================");
 
     char *port = NULL;
 
@@ -229,7 +226,6 @@ char *get_port_from_url(char *url)
 
     if (slash_splits->size > 0){
         port = string_array_list_get_copy(slash_splits, 0);
-        printf("= %s =\n", port);
     }
 
     string_arraylist_destroy(&slash_splits);
