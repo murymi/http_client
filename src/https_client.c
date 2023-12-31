@@ -164,7 +164,8 @@ bool http_client_set_url(char *url, http_client *client)
 
   if(c_url == NULL) return false;
 
-  client->url = c_url->path;
+  client->url = string_create_copy(c_url->path);
+  
   http_client_set_address(c_url->domain,client);
   http_client_set_header("Host",c_url->domain,client);
 
@@ -441,7 +442,8 @@ bool http_client_receive_response(SSL *sock, http_client *client)
 
     if (bytes_received <= 0)
     {
-      perror("recv");
+      out = false;
+      break;
     }
     
     string_append(b, recv_buf[0]);
@@ -463,6 +465,8 @@ bool http_client_receive_response(SSL *sock, http_client *client)
         out = false;
         break;
       }
+
+      map_print(http_res);
 
 
       client->response_headers = http_res;
