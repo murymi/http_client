@@ -406,10 +406,9 @@ bool http_client_connect(http_client *client)
   }
 
   out = http_client_receive_response(ssl, client);
+  client->context = ctx;
+  client->handle = ssl;
 
-  SSL_free(ssl);
-  SSL_CTX_free(ctx);
-  close(sock);
   return out;
 }
 
@@ -431,8 +430,6 @@ bool http_client_receive_response(SSL *sock, http_client *client)
     if (bytes_received <= 0)
     {
       perror("recv");
-      out = false;
-      break;
     }
     
     string_append(b, recv_buf[0]);
@@ -558,6 +555,11 @@ void http_client_destroy(http_client *client)
   if(client->port) free(client->port);
   if(client->method) free(client->method);
   if(client->http_version) free(client->http_version);
+  
+  if(client->context){
+      SSL_free(client->handle);
+      SSL_CTX_free(client->context);
+  }
 
   free(client);
 }

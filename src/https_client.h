@@ -19,6 +19,8 @@
 typedef struct http_client http_client;
 struct http_client
 {
+    SSL_CTX *context;
+    SSL *handle;
     map_t *headers;
     map_t *response_headers;
     char * url;
