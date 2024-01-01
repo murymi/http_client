@@ -669,3 +669,197 @@ map_t * parse_http_response(char *req)
     string_arraylist_destroy(&lines);
     return map;
 }
+
+/**
+ * buff must start with first length initially
+ */
+chunkz *chunkez_create_stream(char *buff, size_t bufferSize)
+{
+    chunkz *c = malloc(sizeof(chunkz));
+
+    c->bufferSize = bufferSize;
+
+    c->encodedBuffer = malloc(bufferSize + 1);
+
+    strcpy(c->encodedBuffer, buff);
+
+    mtx_init(&(c->chunkMutex), 0);
+
+    c->bytesActuallyRead = 0;
+
+    c->bytesToExpectOnCurrentRead = 0;
+
+    c->finished = false;
+
+    c->offset = 0;
+
+    c->isReadingChunk = false;
+
+    c->sizeBuffer = malloc(20);
+
+    c->sizeBufferIndex = 0;
+
+    c->started = false;
+
+    c->decodedIndex = 0;
+
+    c->remainingUnprocessedBytes = bufferSize;
+
+    return c;
+};
+
+ssize_t chunkzRead(chunkz *chk, char *buff, size_t amountOfBytesToRead)
+{
+    
+    if(chk == NULL) {
+        __assert("Is NULL",__FILE__, __LINE__);
+    }
+
+    if(chk->encodedBuffer == NULL) {
+        return -1;
+    }
+    mtx_lock(&(chk->chunkMutex));
+
+    char currentChar;
+
+
+    chk->decodedIndex = 0;
+
+    while (true)
+    {
+
+        if (chk->offset >= chk->bufferSize)
+        {
+            break;
+        }
+
+        currentChar = chk->encodedBuffer[chk->offset];
+
+        if (currentChar == '\r' && chk->encodedBuffer[chk->offset + 1] == '\n')
+        {
+
+            if (!chk->isReadingChunk)
+            {
+                chk->isReadingChunk = true;
+
+                chk->bytesToExpectOnCurrentRead = 0;
+
+                chk->bytesToExpectOnCurrentRead = strtol(chk->sizeBuffer, NULL, 16);
+
+                if (chk->bytesToExpectOnCurrentRead == 0)
+                {
+                    // puts(next_size);
+                    chk->finished = true;
+                    break;
+                }
+
+                bzero(chk->sizeBuffer, 20);
+                chk->sizeBufferIndex = 0;
+            }
+            else
+            {
+
+                if (chk->bytesActuallyRead != chk->bytesToExpectOnCurrentRead)
+                {
+                    printf("Error -> Wrong chunk size exp [%ld] found [%ld]\n", chk->bytesToExpectOnCurrentRead, chk->bytesActuallyRead);
+                    // resultIndex = -1;
+                    chk->decodedIndex = -1;
+                    break;
+
+                }
+                chk->isReadingChunk = false;
+                chk->bytesActuallyRead = 0;
+            }
+
+            chk->offset++;
+        }
+        else
+        {
+
+            if (!chk->isReadingChunk)
+            {
+                chk->sizeBuffer[chk->sizeBufferIndex] = currentChar;
+                chk->sizeBufferIndex++;
+                //printf("> %c\n", currentChar);
+            }
+            else
+            {
+
+                if(currentChar == '\r' && chk->offset == chk->bufferSize-1){
+                    puts("NULL found");
+                    break;
+                }
+
+                buff[chk->decodedIndex] = currentChar;
+                chk->decodedIndex++;
+                chk->bytesActuallyRead++;
+
+                //printf("%ld> %c\n", chk->decodedIndex, currentChar);
+            }
+        }
+
+        chk->offset++;
+
+        if (chk->decodedIndex == amountOfBytesToRead)
+        {
+            break;
+        }
+
+    }
+
+    // -1 when no unread length;
+
+    currentChar = chk->encodedBuffer[chk->offset];
+
+    if(chk->finished){
+        chk->remainingUnprocessedBytes = 0;
+        free(chk->encodedBuffer);
+        chk->encodedBuffer = NULL;
+    } else {
+        chk->remainingUnprocessedBytes = chk->bufferSize - chk->offset;
+        char *temp = malloc(chk->remainingUnprocessedBytes + 1);
+        memcpy(temp, chk->encodedBuffer + chk->offset, chk->remainingUnprocessedBytes);
+
+        free(chk->encodedBuffer);
+
+        chk->encodedBuffer = temp;
+        chk->bufferSize = chk->remainingUnprocessedBytes;
+        chk->offset = 0;
+    }
+
+    int res = chk->decodedIndex;
+    mtx_unlock(&(chk->chunkMutex));
+
+    return res;
+}
+
+
+/**
+ * to feed a continuation of the chk buffer. not for adding new buffer
+*/
+void chunkz_feed(chunkz *chk, char *buff, size_t bsize) {
+    mtx_lock(&(chk->chunkMutex));
+
+    size_t remainingUnprocessedBytes = chk->bufferSize - chk->offset;
+    char *tmp = malloc(remainingUnprocessedBytes + bsize + 1);
+    size_t indx = chk->offset;
+
+    for(size_t i = 0; i < remainingUnprocessedBytes; i++){
+        tmp[i] = chk->encodedBuffer[indx];
+        indx++;
+    }
+
+    for(size_t i = 0; i < bsize; i++){
+        tmp[indx] = buff[i];
+        indx++;
+    }
+
+    free(chk->encodedBuffer);
+
+    chk->encodedBuffer = tmp;
+    chk->bufferSize = chk->remainingUnprocessedBytes + bsize;
+    chk->offset = 0;
+    chk->remainingUnprocessedBytes = remainingUnprocessedBytes + bsize;
+
+    mtx_unlock(&(chk->chunkMutex));
+}
