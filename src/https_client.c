@@ -781,13 +781,12 @@ ssize_t chunkzRead(chunkz *chk, char *buff, size_t amountOfBytesToRead)
             {
                 chk->sizeBuffer[chk->sizeBufferIndex] = currentChar;
                 chk->sizeBufferIndex++;
-                //printf("> %c\n", currentChar);
+                printf("> %c ", currentChar);
             }
             else
             {
 
                 if(currentChar == '\r' && chk->offset == chk->bufferSize-1){
-                    puts("NULL found");
                     break;
                 }
 
@@ -878,8 +877,8 @@ ssize_t http_client_read(http_client *client, char *_buff, size_t bytesToRead){
 
             while (true)
             {
-                char buff[10] = {0};
-                int readb = SSL_read(client->handle, buff, 10);
+                char buff[2] = {0};
+                int readb = SSL_read(client->handle, buff, 2);
 
                 if(readb < 1){
                     bytesRead = readb;
