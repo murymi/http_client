@@ -17,6 +17,14 @@
 #include <unistd.h>
 #include <threads.h>
 
+typedef enum transferEncoding transferEncoding;
+enum transferEncoding {
+    chunked = 10,
+    contentLength
+};
+
+
+typedef struct chunkz chunkz;
 typedef struct http_client http_client;
 struct http_client
 {
@@ -33,6 +41,8 @@ struct http_client
     char * port;
     size_t content_length;
     bool chunked_body;
+    chunkz *chunker;
+    transferEncoding enc;
 };
 
 enum files
@@ -61,7 +71,6 @@ enum methods
 };
 
 
-typedef struct chunkz chunkz;
 struct chunkz
 {
     // bytes after even number of '\\r\\n'
@@ -117,6 +126,8 @@ struct chunkz
     mtx_t chunkMutex;
 };
 
+
+ssize_t http_client_read(http_client *client, char *buff, size_t bytesToRead);
 
 chunkz *chunkez_create_stream(char *buff, size_t bufferSize);
 

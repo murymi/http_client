@@ -473,6 +473,7 @@ bool http_client_receive_response(SSL *sock, http_client *client)
         client->content_length = strtol(clen, NULL, 10);
       } else if(trenc){
         client->chunked_body = true;
+        client->chunker = chunkez_create_stream("",0);
       } else {
         out = false;
       }
@@ -862,4 +863,56 @@ void chunkz_feed(chunkz *chk, char *buff, size_t bsize) {
     chk->remainingUnprocessedBytes = remainingUnprocessedBytes + bsize;
 
     mtx_unlock(&(chk->chunkMutex));
+}
+
+ssize_t http_client_read(http_client *client, char *_buff, size_t bytesToRead){
+
+          if(client->chunked_body){
+
+            if(client->chunker->finished)
+              return 0;
+
+            ssize_t bytesRead = 0;
+
+            ssize_t whatToReadThisRound = bytesToRead;
+
+            while (true)
+            {
+                char buff[10] = {0};
+                int readb = SSL_read(client->handle, buff, 10);
+
+                if(readb < 1){
+                    bytesRead = readb;
+                    break;
+                }
+
+                chunkz_feed(client->chunker, buff, readb);
+
+                ssize_t x = chunkzRead(client->chunker, _buff + bytesRead, whatToReadThisRound);
+
+
+                if(x < 0) {
+                  bytesRead = x;
+                    break;
+                }
+
+                bytesRead += x;
+
+                if(x < whatToReadThisRound){
+                  whatToReadThisRound = bytesToRead - bytesRead;
+                } else {
+                  break;
+                }
+
+                if(client->chunker->finished){
+                  break;
+                }
+
+            }
+
+            return bytesRead;
+            
+        } else {
+          return SSL_read(client->handle, _buff, bytesToRead);
+        }
 }

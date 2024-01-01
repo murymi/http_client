@@ -18,43 +18,11 @@ int main()
     map_print(h->headers);
 
     if(http_client_connect(h)) {
+        char buff[1000] = {0};
 
-        if(strcmp(map_get(h->response_headers, "transfer-encoding"), "chunked") == 0){
-            puts("transfer encoding is chunked");
+        http_client_read(h, buff, 999);
 
-            char decodedBuff[1000] = {0};
-
-            chunkz *cz = chunkez_create_stream("",0);
-
-            int offset = 0;
-
-            while (true)
-            {
-                char buff[1000] = {0};
-                int readb = SSL_read(h->handle, buff, 100);
-
-                chunkz_feed(cz,buff,readb);
-
-                ssize_t x = chunkzRead(cz, decodedBuff, 100);
-
-                puts(decodedBuff);
-
-                bzero(decodedBuff, sizeof decodedBuff);
-
-                if(x < 0 || cz->finished) {
-                    break;
-                }
-
-                if(readb < 1){
-                    break;
-                }
-
-                offset += x;
-            }
-
-            puts(decodedBuff);
-            
-        }
+        puts(buff);
 
     } else {
         puts("connection failed");
