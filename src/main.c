@@ -12,29 +12,24 @@ int main()
 {
     http_client *h = http_client_create();
     http_client_set_method(GET, h);
-    http_client_set_url("https://localhost:3000/song.mp3", h);
+    http_client_set_url("https://internet.org/homey", h);
 
     if(!http_client_connect(h)) {
         puts("failed to connect");
         //exit(1);
     }
 
-    //assert(h->response_headers == NULL);
+    map_print(h->response_headers);
 
-    //puts("========ssert=======");
-
-    //exit(1);
-
-    stream_t *s = stream_init(h->handle);
 
     while(true) {
         char buff[1000] = {0};
         //string_t *l = 
-        if(stream_read(s, buff, 200) == -10){
+        if(http_client_read(h, buff, 200) == -10){
             break;
         }
 
-        puts(buff);
+        printf("%s", buff);
 
         //break;
 

@@ -210,8 +210,6 @@ char *get_port_from_url(char *url)
 {
     strAL *colon_splits = split_lim(':', url, strlen(url), 3);
 
-    string_array_list_print(colon_splits);
-
     if (colon_splits->size != 3)
     {
         string_arraylist_destroy(&colon_splits);

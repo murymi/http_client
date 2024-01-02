@@ -16,6 +16,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <threads.h>
+#include "stream.h"
 
 typedef enum transferEncoding transferEncoding;
 enum transferEncoding {
@@ -24,7 +25,6 @@ enum transferEncoding {
 };
 
 
-typedef struct chunkz chunkz;
 typedef struct http_client http_client;
 struct http_client
 {
@@ -41,8 +41,7 @@ struct http_client
     char * port;
     size_t content_length;
     bool chunked_body;
-    chunkz *chunker;
-    transferEncoding enc;
+    stream_t *stream;
 };
 
 enum files
@@ -71,69 +70,9 @@ enum methods
 };
 
 
-struct chunkz
-{
-    // bytes after even number of '\\r\\n'
-    size_t remainingUnprocessedBytes;
-
-    /* if remaining bytes are part of chunk, if not they
-        are part of size
-    */
-    bool isReadingChunk;
-
-    /**
-     * whether reading has completed
-     */
-
-    bool finished;
-
-    /**
-     * if was reading chunk size of current block
-     */
-    size_t bytesToExpectOnCurrentRead;
-
-    /**
-     * bytes actully read from current block
-     */
-
-    size_t bytesActuallyRead;
-
-    /**
-     * buffer with chunked blocks
-     */
-    char *decodedBuffer;
-
-    size_t decodedIndex;
-
-    char *encodedBuffer;
-
-    /**
-     * size of buffer
-     */
-    size_t bufferSize;
-
-    /*
-        current offset on block
-    */
-    size_t offset;
-
-    char *sizeBuffer;
-
-    size_t sizeBufferIndex;
-
-    bool started;
-
-    mtx_t chunkMutex;
-};
 
 
 ssize_t http_client_read(http_client *client, char *buff, size_t bytesToRead);
-
-chunkz *chunkez_create_stream(char *buff, size_t bufferSize);
-
-ssize_t chunkzRead(chunkz *chk, char *buff, size_t amountOfBytesToRead);
-
-void chunkz_feed(chunkz *chk, char *buff, size_t bsize);
 
 int http_client_create_socket(char *address_,char *port,struct sockaddr **host);
 
