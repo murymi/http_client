@@ -169,6 +169,10 @@ bool http_client_set_url(char *url, http_client *client)
   http_client_set_address(c_url->domain,client);
   http_client_set_header("Host",c_url->domain,client);
 
+  puts("===============,,,");
+  map_print(client->headers);
+  puts(">>>>>>>>>>>>>>>>>>>>>>");
+
   if(c_url->port){
     http_client_set_port(c_url->port, client);
   } else {
@@ -317,6 +321,7 @@ bool http_client_connect(http_client *client)
 
   if (!client->url || !client->method)
   {
+    puts("=========url err===========");
     return false;
   }
 
@@ -335,7 +340,7 @@ bool http_client_connect(http_client *client)
 
   if (method == NULL)
   {
-    // handle error
+    puts("=======method err==========");
     return false;
   }
 
@@ -343,6 +348,7 @@ bool http_client_connect(http_client *client)
 
   if (ctx == NULL)
   {
+    puts("=========== ctx err ===========");
     return false;
   }
 
@@ -351,6 +357,7 @@ bool http_client_connect(http_client *client)
 
   if ((sock = http_client_create_socket(client->address, client->port,&remote_host)) == -1)
   {
+    puts("==============socket err===========");
     return false;
   }
 
@@ -366,6 +373,7 @@ bool http_client_connect(http_client *client)
 
   if ((SSL_write(ssl, header, strlen(header))) == -1)
   {
+    puts("===========write err=============");
     return false;
   }
 
@@ -393,7 +401,10 @@ bool http_client_connect(http_client *client)
 
       if(b_sent < 1)
       {
-        if(b_sent == -1) out = false;
+        if(b_sent == -1) {
+          out = false;
+        }
+          puts("++++ write err+++++");
         break;
       }
 
@@ -437,11 +448,20 @@ bool http_client_receive_response(SSL *sock, http_client *client)
 
   while (true)
   {
+    if(header_size == 1024) {
+      puts("too large header");
+      break;
+    }
 
     bytes_received = SSL_read(sock, recv_buf, 1);
 
     if (bytes_received <= 0)
     {
+      if(bytes_received < 0) {
+        perror("wah ");
+      }
+
+      puts("Connection closed");
       out = false;
       break;
     }
@@ -453,10 +473,6 @@ bool http_client_receive_response(SSL *sock, http_client *client)
     else
       marker = 0;
 
-    if (bytes_received <= 0 /* && file_reached*/)
-    {
-      break;
-    }
 
     if (marker == 4)
     {
@@ -518,6 +534,7 @@ char *http_client_write_header(http_client *ct)
 
   if (ct->headers == NULL)
   {
+    string_concat(head, "\r\n", 2);
     char *chd = head->chars;
     free(head);
     return chd;
@@ -531,6 +548,7 @@ char *http_client_write_header(http_client *ct)
 
   char *chd = head->chars;
   free(head);
+
   return chd;
 }
 

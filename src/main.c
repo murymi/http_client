@@ -6,33 +6,41 @@
 #include <poll.h>
 #include "stream.h"
 
+
+
 int main()
 {
     http_client *h = http_client_create();
     http_client_set_method(GET, h);
-    http_client_set_url("http://localhost/", h);
+    http_client_set_url("https://localhost:3000/song.mp3", h);
 
-    char *headers = http_client_write_header(h);
+    if(!http_client_connect(h)) {
+        puts("failed to connect");
+        //exit(1);
+    }
 
-     struct sockaddr *remote_host = NULL;
+    //assert(h->response_headers == NULL);
 
-    int sock = http_client_create_socket("127.0.0.1", "3000", &remote_host);
+    //puts("========ssert=======");
 
-    send(sock, headers, strlen(headers), 0);
+    //exit(1);
 
-    stream_t *s = stream_init(sock);
+    stream_t *s = stream_init(h->handle);
 
     while(true) {
-
-        string_t *l = stream_read_line(s,"\r\n", false);
-
-        puts(l->chars);
-
-        if(l->size == 0){
+        char buff[1000] = {0};
+        //string_t *l = 
+        if(stream_read(s, buff, 200) == -10){
             break;
         }
 
-        string_destroy(l);
+        puts(buff);
+
+        //break;
+
+        //printf("line len => %ld\n", l->size);
+
+        //string_destroy(l);
     }
 
 

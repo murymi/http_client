@@ -28,13 +28,14 @@ bool string_append(string_t *str, char c)
     if (str != NULL)
     {
 
-        int len = strlen(str->chars);
+        int len = str->size;
 
         str->chars = realloc(str->chars, len + 2);
         str->chars[len] = c;
         str->chars[len + 1] = '\0';
 
-        str->size++;
+        if(c != '\0')
+            str->size++;
 
         return true;
     }
@@ -75,6 +76,7 @@ void string_concat(string_t *dest, char *src, size_t len_src)
     for (size_t i = 0; i < len_src; i++)
     {
         string_append(dest, src[i]);
+        //printf()
     }
 
     string_append(dest, '\0');

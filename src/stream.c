@@ -1,9 +1,9 @@
 #include "stream.h"
 
-stream_t *stream_init(int fd) {
+stream_t *stream_init(SSL *fd) {
     stream_t *s = malloc(sizeof(stream_t));
     s->pfd = malloc(sizeof(struct pollfd));
-    s->pfd->fd = fd;
+    s->pfd->fd = SSL_get_fd(fd);
     s->pfd->events = POLLIN;
     s->mock = false;
     s->handle = fd;
@@ -29,6 +29,7 @@ stream_t *stream_init_mock(char *buff, size_t buffSize){
 
 size_t stream_peek(stream_t *stream, char *buffer ,size_t num) {
     if(stream->mock) {
+
         size_t r = 0;
         for(size_t i = stream->offset; i < stream->buffSize; i++){
             if(r >= num){
@@ -48,20 +49,20 @@ size_t stream_peek(stream_t *stream, char *buffer ,size_t num) {
         size_t rthist = num;
          while(true) {
 
-            int p = poll(stream->pfd, 1, -1);
+            int p = poll(stream->pfd, 1, 1000);
 
             if(p < 1) {
 
 
                 if(p == 0){
-
+                    puts("-------timeout -------");
                     break; /*time out*/
                 }
                 if(p < 0)
                     perror("poll");
             }
 
-            ssize_t x = recv(stream->handle, buffer + r, rthist, MSG_PEEK);
+            ssize_t x = SSL_peek(stream->handle, buffer + r, rthist);
 
             if(x < 1) {
                 if(x < 0){
@@ -84,7 +85,6 @@ size_t stream_peek(stream_t *stream, char *buffer ,size_t num) {
     }
 }
 
-size_t stream_read(stream_t *stream, char *buffer, size_t num);
 
 string_t *stream_read_line(stream_t *stream, char *delim, bool includeDelim) {
     size_t delim_len = strlen(delim);
@@ -138,6 +138,8 @@ string_t *stream_read_line(stream_t *stream, char *delim, bool includeDelim) {
         char recBuff[50] = {0};
             ssize_t x = stream_read(stream, recBuff, 1);
 
+            if(x == -10) { break; /*due to timeout*/ }
+
             if(recBuff[0] == delim[0]) {
 
                 char peek_buff[50] = {0};
@@ -147,6 +149,8 @@ string_t *stream_read_line(stream_t *stream, char *delim, bool includeDelim) {
                 if(strncmp(peek_buff, delim + 1, s) == 0) {
                     
                     ssize_t d = stream_read(stream, recBuff + 1, delim_len - 1);
+
+                    if(d == -10) { break; /*due to timeout*/ }
 
                     if(includeDelim){
 
@@ -172,7 +176,7 @@ string_t *stream_read_line(stream_t *stream, char *delim, bool includeDelim) {
 
 //void read_at_least(stream_t *stream, char *buffer, size_t num);
 
-size_t stream_read(stream_t *stream, char *buffer, size_t num) {
+ssize_t stream_read(stream_t *stream, char *buffer, size_t num) {
     if(stream->mock) {
         size_t toR = 0;
         for(size_t i = stream->offset; i < stream->buffSize; i++) {
@@ -194,24 +198,26 @@ size_t stream_read(stream_t *stream, char *buffer, size_t num) {
         size_t toReadNow = num;
 
         while(true) {
-            int p = poll(stream->pfd, 1, -1);
+            int p = poll(stream->pfd, 1, 1000);
 
             if(p < 1) {
 
 
                 if(p == 0){
-
+                    puts("---timeout-----");
+                    buffOffset = -10;
                     break; /*time out*/
                 }
                 if(p < 0)
                     perror("poll");
             }
 
-            ssize_t r = recv(stream->handle, buffer + buffOffset, toReadNow, 0);
+            ssize_t r = SSL_read(stream->handle, buffer + buffOffset, toReadNow);
 
             if(r < 1) {
                 if(r < 0){
-                    perror("recv ");
+                    perror("recv > ");
+                    abort();
                 }
 
                 break;
