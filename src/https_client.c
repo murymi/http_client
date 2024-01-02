@@ -701,9 +701,13 @@ ssize_t http_client_read_chunks(http_client *client, char **buff) {
 
 
     if(chunkSize == 0) {
-      puts(string_array_list_get(split_line, 0));
-      return -10;
+      puts("FINISHING ");
+      *buff = NULL;
+      client->stream->finished = true;
+      return 0;
     }
+
+    "1\r\nH\r\n0\r\n\r\n";
 
     char *chunk = malloc(chunkSize + 5);
     #include <strings.h>
@@ -714,6 +718,8 @@ ssize_t http_client_read_chunks(http_client *client, char **buff) {
     if(chunk){
 
       r = stream_read(client->stream, chunk, chunkSize); 
+
+    printf("len -> %ld\n", chunkSize);
 
       if(r < 1) {
         if(r == -10){
@@ -727,9 +733,9 @@ ssize_t http_client_read_chunks(http_client *client, char **buff) {
 
       ssize_t waste_len = stream_read(client->stream, waste, 2);
 
-      if(waste_len > 0){
-        assert(strncmp(waste, "\r\n", 2) == 0);
-      }
+      assert(waste_len == 2);
+      assert(strncmp(waste, "\r\n", 2) == 0);
+
 
     } else {
       puts("malloc error");

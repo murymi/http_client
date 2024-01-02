@@ -13,6 +13,9 @@ struct stream_t {
     SSL *handle;
 
     struct pollfd *pfd;
+
+    bool finished;
+
     /**
      * if mock buff
     */

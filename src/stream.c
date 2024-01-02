@@ -7,6 +7,8 @@ stream_t *stream_init(SSL *fd) {
     s->pfd->events = POLLIN;
     s->mock = false;
     s->handle = fd;
+    s->finished = false;
+    s->offset = 0;
 
     return s;
 }
@@ -49,19 +51,19 @@ size_t stream_peek(stream_t *stream, char *buffer ,size_t num) {
         size_t rthist = num;
          while(true) {
 
-            int p = poll(stream->pfd, 1, 1000);
-
-            if(p < 1) {
-
-
-                if(p == 0){
-                    puts("-------timeout -------");
-                    r = -10;
-                    break; /*time out*/
-                }
-                if(p < 0)
-                    perror("poll");
-            }
+            //int p = poll(stream->pfd, 1, 10000);
+//
+            //if(p < 1) {
+//
+//
+            //    if(p == 0){
+            //        puts("-------timeout -------");
+            //        r = -10;
+            //        break; /*time out*/
+            //    }
+            //    if(p < 0)
+            //        perror("poll");
+            //}
 
             ssize_t x = SSL_peek(stream->handle, buffer + r, rthist);
 
@@ -199,27 +201,27 @@ ssize_t stream_read(stream_t *stream, char *buffer, size_t num) {
         size_t toReadNow = num;
 
         while(true) {
-
-            int p = poll(stream->pfd, 1, 1000);
-
-            if(p < 1) {
-
-
-                if(p == 0){
-                    puts("---timeout-----");
-                    buffOffset = -10;
-                    break; /*time out*/
-                }
-                if(p < 0)
-                    perror("poll");
-            }
+            
+            //puts("blockinh on poll");
+            //int p = poll(stream->pfd, 1, -1);
+//
+            //if(p < 1) {
+//
+//
+            //    if(p == 0){
+            //        puts("---timeout-----");
+            //        buffOffset = -10;
+            //        break; /*time out*/
+            //    }
+            //    if(p < 0)
+            //        perror("poll");
+            //}
 
             ssize_t r = SSL_read(stream->handle, buffer + buffOffset, toReadNow);
 
             if(r < 1) {
                 if(r < 0){
                     perror("recv > ");
-                    abort();
                 }
 
                 break;
