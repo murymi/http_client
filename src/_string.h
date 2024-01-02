@@ -10,6 +10,7 @@
 typedef struct string_t string_t;
 struct string_t
 {
+    size_t size;
     char *chars;
 };
 

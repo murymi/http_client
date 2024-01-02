@@ -5,6 +5,7 @@ string_t *string_create()
     string_t *t = malloc(sizeof(string_t));
     t->chars = malloc(sizeof(char));
     t->chars[0] = '\0';
+    t->size = 0;
     return t;
 }
 
@@ -18,6 +19,7 @@ string_t *string_create_from_string(char *string)
     strcpy(t->chars, string);
     t->chars[len] = '\0';
 
+    t->size = len;
     return t;
 }
 
@@ -31,6 +33,8 @@ bool string_append(string_t *str, char c)
         str->chars = realloc(str->chars, len + 2);
         str->chars[len] = c;
         str->chars[len + 1] = '\0';
+
+        str->size++;
 
         return true;
     }
@@ -54,6 +58,7 @@ bool string_pop(string_t *str)
     if (str == NULL)
         return false;
     str->chars[strlen(str->chars) - 1] = '\0';
+    str->size--;
     return true;
 }
 char string_back(string_t *str)

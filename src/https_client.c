@@ -747,6 +747,8 @@ ssize_t chunkzRead(chunkz *chk, char *buff, size_t amountOfBytesToRead)
 
                 chk->bytesToExpectOnCurrentRead = strtol(chk->sizeBuffer, NULL, 16);
 
+                printf("\n<!--*******************[ %ld ]*************************-->\n", chk->bytesToExpectOnCurrentRead);
+
                 if (chk->bytesToExpectOnCurrentRead == 0)
                 {
                     // puts(next_size);
@@ -764,8 +766,8 @@ ssize_t chunkzRead(chunkz *chk, char *buff, size_t amountOfBytesToRead)
                 {
                     printf("Error -> Wrong chunk size exp [%ld] found [%ld]\n", chk->bytesToExpectOnCurrentRead, chk->bytesActuallyRead);
                     // resultIndex = -1;
-                    chk->decodedIndex = -1;
-                    break;
+                    //chk->decodedIndex = -1;
+                    //break;
 
                 }
                 chk->isReadingChunk = false;
@@ -781,7 +783,6 @@ ssize_t chunkzRead(chunkz *chk, char *buff, size_t amountOfBytesToRead)
             {
                 chk->sizeBuffer[chk->sizeBufferIndex] = currentChar;
                 chk->sizeBufferIndex++;
-                printf("> %c ", currentChar);
             }
             else
             {
@@ -877,11 +878,12 @@ ssize_t http_client_read(http_client *client, char *_buff, size_t bytesToRead){
 
             while (true)
             {
-                char buff[2] = {0};
-                int readb = SSL_read(client->handle, buff, 2);
+                char buff[1024] = {0};
+                int readb = SSL_read(client->handle, buff, 1024);
 
                 if(readb < 1){
                     bytesRead = readb;
+                    puts("========SSL ERROR==============================");
                     break;
                 }
 
@@ -892,6 +894,7 @@ ssize_t http_client_read(http_client *client, char *_buff, size_t bytesToRead){
 
                 if(x < 0) {
                   bytesRead = x;
+                  puts("++++++++++++++++++++chunking error+++++++++++++++++++++++++++");
                     break;
                 }
 
@@ -904,6 +907,7 @@ ssize_t http_client_read(http_client *client, char *_buff, size_t bytesToRead){
                 }
 
                 if(client->chunker->finished){
+                  puts("++++++++++++++++++finished reading++++++++++++++++++++++++++");
                   break;
                 }
 
