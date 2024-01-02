@@ -56,6 +56,7 @@ size_t stream_peek(stream_t *stream, char *buffer ,size_t num) {
 
                 if(p == 0){
                     puts("-------timeout -------");
+                    r = -10;
                     break; /*time out*/
                 }
                 if(p < 0)
@@ -198,6 +199,7 @@ ssize_t stream_read(stream_t *stream, char *buffer, size_t num) {
         size_t toReadNow = num;
 
         while(true) {
+
             int p = poll(stream->pfd, 1, 1000);
 
             if(p < 1) {
@@ -225,17 +227,17 @@ ssize_t stream_read(stream_t *stream, char *buffer, size_t num) {
 
             buffOffset += r;
 
-            if(buffOffset == num){    
+            if(buffOffset == num){
                 break;
             }
-            else if(toReadNow > num) {
+
+            if(toReadNow > num) {
                 assert(num == toReadNow);
             } else {
-                toReadNow = num - r;
+                toReadNow -= r;
             }
             
         }
-
         return buffOffset;
     }
 }

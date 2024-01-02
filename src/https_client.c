@@ -446,7 +446,7 @@ bool http_client_receive_response(SSL *sock, http_client *client)
 
   while (true)
   {
-    if(header_size == 1024) {
+    if(header_size == 8096) {
       puts("too large header");
       break;
     }
@@ -688,9 +688,52 @@ map_t * parse_http_response(char *req)
 }
 
 ssize_t http_client_read(http_client *client, char *buff, size_t bytesToRead) {
-  if(client->chunked_body) {
-
-  } else {
     return stream_read(client->stream, buff, bytesToRead);
-  }
+}
+
+ssize_t http_client_read_chunks(http_client *client, char **buff) {
+    
+    string_t *line = stream_read_line(client->stream, "\r\n", false);
+
+    strAL * split_line = split(';', line->chars, line->size);
+
+    size_t chunkSize = strtoul(string_array_list_get(split_line, 0), NULL, 16);
+
+
+    if(chunkSize == 0) {
+      puts(string_array_list_get(split_line, 0));
+      return -10;
+    }
+
+    char *chunk = malloc(chunkSize + 5);
+    #include <strings.h>
+    bzero(chunk, chunkSize + 5);
+
+    ssize_t r = 0; 
+
+    if(chunk){
+
+      r = stream_read(client->stream, chunk, chunkSize); 
+
+      if(r < 1) {
+        if(r == -10){
+          return -10;
+        }
+        return r;
+      }
+
+      *buff = chunk;
+      char waste[10] = {};
+
+      ssize_t waste_len = stream_read(client->stream, waste, 2);
+
+      if(waste_len > 0){
+        assert(strncmp(waste, "\r\n", 2) == 0);
+      }
+
+    } else {
+      puts("malloc error");
+    }
+
+    return r;
 }

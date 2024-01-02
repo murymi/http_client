@@ -70,7 +70,7 @@ enum methods
 };
 
 
-
+ssize_t http_client_read_chunks(http_client *client, char **buff);
 
 ssize_t http_client_read(http_client *client, char *buff, size_t bytesToRead);
 
