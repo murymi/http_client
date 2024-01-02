@@ -701,13 +701,15 @@ ssize_t http_client_read_chunks(http_client *client, char **buff) {
 
 
     if(chunkSize == 0) {
-      puts("FINISHING ");
+
+      char waste[10] = {};
+
+      stream_read(client->stream, waste, 2);
+
       *buff = NULL;
       client->stream->finished = true;
       return 0;
     }
-
-    "1\r\nH\r\n0\r\n\r\n";
 
     char *chunk = malloc(chunkSize + 5);
     #include <strings.h>

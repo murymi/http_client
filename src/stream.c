@@ -76,7 +76,7 @@ size_t stream_peek(stream_t *stream, char *buffer ,size_t num) {
 
             r += x;
 
-            rthist = num - x;
+            rthist -= x;
 
             if(rthist <= 0){
                 break;
