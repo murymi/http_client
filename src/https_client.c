@@ -111,12 +111,14 @@ SSL *http_client_create_ssl(char *address_, SSL_CTX *ctx, int sock)
     exit(1);
   }
 
+  printf("Attempting to connect to %s\n", address_);
   res = SSL_connect(ssl);
   if (res != 1)
   {
     return NULL;
   }
 
+   printf("Performing a TLS handshake with %s\n", address_);
   res = SSL_do_handshake(ssl);
   if (res != 1)
   {
@@ -724,8 +726,6 @@ ssize_t http_client_read_chunks(http_client *client, char **buff)
   {
 
     r = stream_read(client->stream, chunk, chunkSize);
-
-    printf("len -> %ld\n", chunkSize);
 
     if (r < 1)
     {
