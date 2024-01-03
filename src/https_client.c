@@ -864,3 +864,45 @@ bool http_client_send(http_client *client)
     return false;
   }
 }
+
+void http_client_read_to_file(http_client *client, char *filename) {
+
+  FILE *file = fopen(filename, "wb");
+
+  if(file == NULL){
+    puts("Failed to open file");
+    return;
+  }
+
+  if(!client->stream->finished) {
+    if(client->chunked_body) {
+
+      char *buff = NULL;
+      ssize_t chunklen;
+      while((chunklen = http_client_read_chunks(client, &buff)) > 0) {
+        fwrite(buff, chunklen, 1, file);
+        free(buff);
+      }
+
+    } else {
+      size_t rem = client->content_length;
+      ssize_t r ;
+      ssize_t to_read_now = rem > 1024 ? 1024 : rem;
+      char buff[1025] = {0};
+      while((r = stream_read(client->stream, buff, to_read_now)) > 0) {
+        rem -= r;
+
+        fwrite(buff, r, 1, file);
+
+        if((ssize_t)rem <= to_read_now){
+          to_read_now = rem;
+        }
+
+        if(rem <= 0) 
+          break;
+      }
+    }
+  }
+
+  fclose(file);
+}

@@ -123,3 +123,5 @@ void join_headers(char *key, char *value, string_t *str);
 bool http_client_send(http_client *client);
 
 void http_client_restart(http_client * client);
+
+void http_client_read_to_file(http_client *client, char *filename);
