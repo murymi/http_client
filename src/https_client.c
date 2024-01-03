@@ -760,7 +760,7 @@ void http_client_restart(http_client * client) {
     free(client->body);
 
   if(client->headers){
-    map_delete(client->headers, "Host");
+    
   }
 
   if (client->url)
@@ -768,7 +768,6 @@ void http_client_restart(http_client * client) {
   if (client->response_headers)
     map_destroy(&(client->response_headers));
   if (client->port)
-    free(client->port);
 
   if (client->context)
   {
@@ -790,30 +789,32 @@ bool http_client_send(http_client *client)
     if (status_code)
     {
 
-
-      
-      map_print(client->response_headers);
-
-      if (strcmp(status_code, "302") == 0)
+      if ((strcmp(status_code, "302") == 0) || (strcmp(status_code, "301") == 0))
       {
         char *redirect_url = map_get(client->response_headers, "location");
         char *prev_method = string_create_copy(client->method);
+
+        printf("Redirecting to: %s\n",redirect_url);
 
         if (redirect_url)
         {
           char *url_cpy = string_create_copy(redirect_url);
           char *rplced = replace_html_entity(url_cpy);
+          char *prev_address = string_create_copy(client->address);
 
           http_client_restart(client);
 
           if(rplced[0] == '/') {
             client->url = rplced;
+            client->method = prev_method;
+            client->address = prev_address;
+
           } else {
-            
+            free(prev_address);
+            map_delete(client->headers, "Host");
+            free(client->port);
             http_client_set_url(rplced, client);
             client->method = prev_method;
-            map_print(client->headers);
-            
           }
 
           return http_client_send(client);
