@@ -119,3 +119,7 @@ void http_client_send_request(http_client *client);
 map_t * parse_http_response(char *req);
 
 void join_headers(char *key, char *value, string_t *str);
+
+bool http_client_send(http_client *client);
+
+void http_client_restart(http_client * client);
