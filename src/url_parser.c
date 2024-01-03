@@ -303,3 +303,65 @@ bool verify_url(char *url)
     return out;
 
 }
+
+char *replace_html_entity(char *str)
+{
+    size_t len = strlen(str);
+    string_t *decoded = string_create();
+
+    char *x = NULL;
+    int offset = 0;
+
+    while ((x = strchr(str, '&')) != NULL)
+    {
+        char *y = strchr(str, ';');
+
+        int s_len;
+
+        if (y != NULL)
+        {
+
+            char entity[10] = {0};
+
+            int ent_len = y - x + 1;
+
+            int startPos = x - str;
+
+            strncpy(entity, x, ent_len);
+            entity[ent_len] = '\0';
+
+            string_concat(decoded, str, startPos);
+
+            s_len = startPos + ent_len;
+            offset += s_len;
+            str += s_len;
+
+            if(strncmp(entity, "&nbsp;", ent_len) == 0) {
+                string_append(decoded, ' ');
+            } else if (strncmp(entity, "&lt;", ent_len) == 0) {
+                string_append(decoded, '<');
+            } else if (strncmp(entity, "&gt;", ent_len) == 0) {
+                string_append(decoded, '>');
+            } else if (strncmp(entity, "&amp;", ent_len) == 0) {
+                string_append(decoded, '&');
+            } else if (strncmp(entity, "&quot;", ent_len) == 0) {
+                string_append(decoded, '\"');
+            } else if (strncmp(entity, "&apos;", ent_len) == 0) {
+                string_append(decoded, '\'');
+            }
+
+            continue;
+        } 
+
+        s_len = x - str + 1;
+        string_concat(decoded, str, s_len);
+        str += (s_len);
+        offset += s_len;
+    }
+
+    string_concat(decoded, str, len - offset);
+    
+    char *r = decoded->chars;
+    free(decoded);
+    return r;
+}

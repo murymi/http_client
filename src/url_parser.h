@@ -37,3 +37,5 @@ char *get_path_from_url(char *url);
 bool verify_url(char *url);
 
 char *get_param_part_from_url(char *url);
+
+char *replace_html_entity(char *str);
