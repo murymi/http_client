@@ -741,6 +741,7 @@ ssize_t http_client_read_chunks(http_client *client, char **buff) {
 
     } else {
       puts("malloc error");
+      abort();
     }
 
     return r;
