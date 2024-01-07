@@ -115,7 +115,10 @@ url *url_parse(char *str) {
         for(size_t i = 0; i < p_splits->size; i++) {
             strAL *pspt = _split_lim(string_array_list_get(p_splits, i), "=",2);
 
-            assert(pspt->size == 2);
+            if(pspt->size != 2){
+                string_arraylist_destroy(&pspt);
+                continue;
+            }
 
             map_put(parsed->params, string_array_list_get(pspt, 0), string_array_list_get(pspt, 1));
 

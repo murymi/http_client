@@ -11,11 +11,10 @@ int main()
 {
     http_client *h = http_client_create();
 
-    http_client_set_url("https://internet.org", h);
+    http_client_set_url("https://www.facebook.com", h);
     http_client_set_method(GET, h);
 
     if(http_client_send(h)){
-        map_print(h->response_headers);
         http_client_read_to_file(h, "readfile.html");
     }
 
