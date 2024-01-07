@@ -65,3 +65,5 @@ size_t find_first_not_space(char *str);
 char *string_to_lower(char *str);
 
 char *string_add_char(char *str,char c,size_t index);
+
+strAL *split_v2(char *str, char *delim);

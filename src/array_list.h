@@ -44,3 +44,5 @@ inline size_t string_array_list_capacity(strAL *sal){
 strAL *string_array_list_create_capacity(size_t capacity);
 
 void string_arraylist_destroy(strAL **sal);
+
+void string_array_list_append_allocated(strAL *al, char *str);

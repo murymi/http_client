@@ -53,6 +53,21 @@ void string_array_list_append(strAL *al, char *str)
 
 }
 
+void string_array_list_append_allocated(strAL *al, char *str)
+{
+
+    if(al->size >= al->capacity) {
+        string_array_list_add_one(al);
+    }
+
+    {
+        al->list[al->size] = str;
+        al->size += 1;
+        return;
+    }
+
+}
+
 void string_array_list_print(strAL *a)
 {
     for (size_t i = 0; i < a->size; i++)
@@ -152,6 +167,8 @@ void string_array_list_add(strAL *sal, char *value, size_t pos)
 
     __assert("valid index\n", __FILE__, __LINE__);
 }
+
+
 
 
 void string_arraylist_destroy(strAL **sal) {

@@ -118,7 +118,7 @@ SSL *http_client_create_ssl(char *address_, SSL_CTX *ctx, int sock)
     return NULL;
   }
 
-   printf("Performing a TLS handshake with %s\n", address_);
+  printf("Performing a TLS handshake with %s\n", address_);
   res = SSL_do_handshake(ssl);
   if (res != 1)
   {
@@ -153,31 +153,31 @@ http_client *http_client_create()
   return client;
 }
 
-bool http_client_set_url(char *url, http_client *client)
+bool http_client_set_url(char *_url, http_client *client)
 {
-  if (!url || !client)
+  if (!_url || !client)
     return false;
 
-  url_t *c_url = url_parser_parse(url);
+  url *c_url = url_parse(_url);
 
   if (c_url == NULL)
     return false;
 
-  client->url = string_create_copy(c_url->path);
+  client->url = c_url->route;
 
-  http_client_set_address(c_url->domain, client);
-  http_client_set_header("Host", c_url->domain, client);
+  client->address = c_url->address;
+  http_client_set_header("Host", c_url->address, client);
 
   if (c_url->port)
   {
-    http_client_set_port(c_url->port, client);
+    client->port = c_url->port;
   }
   else
   {
     http_client_set_port("443", client);
   }
 
-  url_free(c_url);
+  free(c_url);
 
   return true;
 }
@@ -753,14 +753,15 @@ ssize_t http_client_read_chunks(http_client *client, char **buff)
   return r;
 }
 
-void http_client_restart(http_client * client) {
+void http_client_restart(http_client *client)
+{
   if (client->address)
     free(client->address);
   if (client->body)
     free(client->body);
 
-  if(client->headers){
-    
+  if (client->headers)
+  {
   }
 
   if (client->url)
@@ -769,13 +770,13 @@ void http_client_restart(http_client * client) {
     map_destroy(&(client->response_headers));
   if (client->port)
 
-  if (client->context)
-  {
-    int fd = SSL_get_fd(client->handle);
-    SSL_free(client->handle);
-    close(fd);
-    SSL_CTX_free(client->context);
-  }
+    if (client->context)
+    {
+      int fd = SSL_get_fd(client->handle);
+      SSL_free(client->handle);
+      close(fd);
+      SSL_CTX_free(client->context);
+    }
 
   client->stream = NULL;
 }
@@ -794,7 +795,7 @@ bool http_client_send(http_client *client)
         char *redirect_url = map_get(client->response_headers, "location");
         char *prev_method = string_create_copy(client->method);
 
-        printf("Redirecting to: %s\n",redirect_url);
+        printf("Redirecting to: %s\n", redirect_url);
 
         if (redirect_url)
         {
@@ -804,12 +805,14 @@ bool http_client_send(http_client *client)
 
           http_client_restart(client);
 
-          if(rplced[0] == '/') {
+          if (rplced[0] == '/')
+          {
             client->url = rplced;
             client->method = prev_method;
             client->address = prev_address;
-
-          } else {
+          }
+          else
+          {
             free(prev_address);
             map_delete(client->headers, "Host");
             free(client->port);
@@ -865,40 +868,48 @@ bool http_client_send(http_client *client)
   }
 }
 
-void http_client_read_to_file(http_client *client, char *filename) {
+void http_client_read_to_file(http_client *client, char *filename)
+{
 
   FILE *file = fopen(filename, "wb");
 
-  if(file == NULL){
+  if (file == NULL)
+  {
     puts("Failed to open file");
     return;
   }
 
-  if(!client->stream->finished) {
-    if(client->chunked_body) {
+  if (!client->stream->finished)
+  {
+    if (client->chunked_body)
+    {
 
       char *buff = NULL;
       ssize_t chunklen;
-      while((chunklen = http_client_read_chunks(client, &buff)) > 0) {
+      while ((chunklen = http_client_read_chunks(client, &buff)) > 0)
+      {
         fwrite(buff, chunklen, 1, file);
         free(buff);
       }
-
-    } else {
+    }
+    else
+    {
       size_t rem = client->content_length;
-      ssize_t r ;
+      ssize_t r;
       ssize_t to_read_now = rem > 1024 ? 1024 : rem;
       char buff[1025] = {0};
-      while((r = stream_read(client->stream, buff, to_read_now)) > 0) {
+      while ((r = stream_read(client->stream, buff, to_read_now)) > 0)
+      {
         rem -= r;
 
         fwrite(buff, r, 1, file);
 
-        if((ssize_t)rem <= to_read_now){
+        if ((ssize_t)rem <= to_read_now)
+        {
           to_read_now = rem;
         }
 
-        if(rem <= 0) 
+        if (rem <= 0)
           break;
       }
     }

@@ -407,3 +407,41 @@ char *string_add_char(char *str,char c,size_t pos)
     free(temp);
     return chars;
 }
+
+strAL *split_v2(char *str, char *delim) {
+    strAL *splits = string_array_list_create();
+    string_t *x = string_create();
+
+    size_t delim_len = strlen(delim);
+
+    size_t seq = 0;
+    
+    for(int i = 0; str[i] != '\0'; i++) {
+
+        if(str[i] == delim[seq]) {
+            seq++;
+        } else {
+            seq = 0;
+        }
+
+        string_append(x, str[i]);
+
+        if(seq == delim_len) {
+            x->chars[x->size - seq] = '\0';
+            string_array_list_append_allocated(splits, string_create_copy(x->chars));
+
+            free(x->chars);
+
+            x->chars = malloc(sizeof(char));
+            x->chars[0] = '\0';
+            x->size = 0;
+        }
+
+    }
+
+    string_array_list_append_allocated(splits, x->chars);
+
+    free(x);
+
+    return splits;
+}

@@ -1,41 +1,71 @@
-#pragma once
+#pragma once 
 
-#include "map.h"
-#include "_string.h"
-#include "regex.h"
+#include <math.h>
 #include "array_list.h"
+#include "map.h"
+#include <stdbool.h>
+#include <regex.h>
 
-/*A simple url parser*/
-typedef struct url url_t;
-struct url{
+typedef struct url url;
+
+struct url {
+    char *raw_url;
     char *scheme;
-    char *domain;
-    char *www_domain;
     char *path;
     char *port;
-    map_t * params;
+    char *address;
+    map_t *params;
+    strAL *flags;
+    char *route;
 };
 
-url_t *url_parser_parse(char *url);
 
-void url_free(url_t *url);
-
-struct map_t *parse_url(char *url);
-
-struct map_t *parse_url_query(char *query);
-
-char *get_param_from_url(char *url,char *key);
-
-char *get_domain_name_from_url(char *url);
-
-char *get_scheme_from_url(char *url);
-
-char *get_port_from_url(char *url);
-
-char *get_path_from_url(char *url);
+url *url_parse(char *url);
 
 bool verify_url(char *url);
 
-char *get_param_part_from_url(char *url);
+
+#include <string.h>
+#include <strings.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+typedef struct _string_t _string_t;
+
+struct _string_t {
+    char *ptr;
+
+    // position of null ptr
+    size_t len;
+
+    // allocated size
+    size_t size;
+};
+
+_string_t *_string_create();
+
+_string_t *_string_create_size(size_t size);
+
+void _string_append(_string_t *s, char c);
+
+void _string_concat(_string_t *s, char *str);
+
+void _string_destroy(_string_t *s);
+
+void string_expand(_string_t *s, size_t capacity);
+
+strAL *_split(char *str, char *delim);
+
+char *_string_create_copy(char *str);
+
+strAL *_split_lim(char *str, char *delim, int lim);
+
+size_t _find_first_not_space(char *str);
+
+size_t _find_last_not_space(char *str);
+
+char *_trim(char *buffer);
+
+char *_string_sub(size_t start, size_t stop, char *buffer);
 
 char *replace_html_entity(char *str);
